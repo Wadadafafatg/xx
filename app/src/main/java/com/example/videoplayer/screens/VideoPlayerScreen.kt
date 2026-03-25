@@ -31,6 +31,7 @@ fun VideoPlayerScreen(
     videoUri: Uri,
     title: String,
     onBack: () -> Unit,
+    onPlaybackStarted: () -> Unit,
 ) {
     val context = LocalContext.current
     val replayCount = remember { mutableIntStateOf(0) }
@@ -56,6 +57,7 @@ fun VideoPlayerScreen(
                     setVideoURI(videoUri)
                     setOnPreparedListener { mediaPlayer ->
                         mediaPlayer.isLooping = false
+                        onPlaybackStarted()
                         start()
                     }
                     setOnCompletionListener {
