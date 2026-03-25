@@ -150,8 +150,16 @@ fun VideoListScreen(
                             resolveTitle = ::resolvedTitle,
                             onVideoSelected = { video -> onVideoSelected(video, resolvedTitle(video)) },
                             onRename = { video, newTitle ->
-                                preferences.setCustomTitle(video.id, newTitle)
-                                videos = videos.toList()
+                                scope.launch {
+                                    val renamed = repository.renameVideo(video, newTitle)
+                                    if (renamed) {
+                                        preferences.clearCustomTitle(video.id)
+                                        loadVideos()
+                                    } else {
+                                        preferences.setCustomTitle(video.id, newTitle)
+                                        videos = videos.toList()
+                                    }
+                                }
                             },
                             onDelete = { video -> deletingVideo = video },
                             onClearTitle = { video ->
@@ -391,8 +399,10 @@ private fun LibraryCard(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onRename(editedTitle)
-                        renameDialogOpen = false
+                        if (editedTitle.isNotBlank()) {
+                            onRename(editedTitle)
+                            renameDialogOpen = false
+                        }
                     }
                 ) { Text("Save") }
             },

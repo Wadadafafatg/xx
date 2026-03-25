@@ -2,6 +2,7 @@ package com.example.videoplayer
 
 import android.content.ContentUris
 import android.content.Context
+import android.content.ContentValues
 import android.provider.MediaStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -49,5 +50,26 @@ class VideoRepository(private val context: Context) {
 
     suspend fun deleteVideo(video: Video): Boolean = withContext(Dispatchers.IO) {
         context.contentResolver.delete(video.uri, null, null) > 0
+    }
+
+    suspend fun renameVideo(video: Video, newTitle: String): Boolean = withContext(Dispatchers.IO) {
+        val sanitizedTitle = newTitle.trim()
+        if (sanitizedTitle.isEmpty()) return@withContext false
+
+        val oldTitle = video.title
+        val extension = oldTitle.substringAfterLast('.', "")
+        val hasExtension = oldTitle.contains('.') && extension.isNotBlank()
+        val normalizedName = buildString {
+            append(sanitizedTitle)
+            if (hasExtension && !sanitizedTitle.endsWith(".$extension", ignoreCase = true)) {
+                append(".")
+                append(extension)
+            }
+        }
+
+        val values = ContentValues().apply {
+            put(MediaStore.Video.Media.DISPLAY_NAME, normalizedName)
+        }
+        context.contentResolver.update(video.uri, values, null, null) > 0
     }
 }
