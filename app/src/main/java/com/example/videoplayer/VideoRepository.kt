@@ -14,6 +14,7 @@ class VideoRepository(private val context: Context) {
             MediaStore.Video.Media._ID,
             MediaStore.Video.Media.DISPLAY_NAME,
             MediaStore.Video.Media.DURATION,
+            MediaStore.Video.Media.DATE_ADDED,
         )
         val sortOrder = "${MediaStore.Video.Media.DATE_ADDED} DESC"
 
@@ -28,6 +29,7 @@ class VideoRepository(private val context: Context) {
                 val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
                 val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
                 val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
+                val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
 
                 while (cursor.moveToNext()) {
                     val id = cursor.getLong(idColumn)
@@ -36,6 +38,7 @@ class VideoRepository(private val context: Context) {
                             id = id,
                             title = cursor.getString(titleColumn) ?: "Untitled video",
                             durationMs = cursor.getLong(durationColumn),
+                            dateAddedSeconds = cursor.getLong(dateAddedColumn),
                             uri = ContentUris.withAppendedId(collection, id),
                         )
                     )
