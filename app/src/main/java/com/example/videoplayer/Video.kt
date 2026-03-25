@@ -6,5 +6,6 @@ data class Video(
     val id: Long,
     val title: String,
     val durationMs: Long,
+    val dateAddedSeconds: Long,
     val uri: Uri,
 )
