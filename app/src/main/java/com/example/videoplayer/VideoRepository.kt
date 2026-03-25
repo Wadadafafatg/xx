@@ -46,4 +46,8 @@ class VideoRepository(private val context: Context) {
             }
         }
     }
+
+    suspend fun deleteVideo(video: Video): Boolean = withContext(Dispatchers.IO) {
+        context.contentResolver.delete(video.uri, null, null) > 0
+    }
 }
