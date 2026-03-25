@@ -40,7 +40,6 @@ fun VideoPlayerScreen(
     DisposableEffect(Unit) {
         val activity = context as? Activity
         val window = activity?.window
-        val originalFitsSystemWindows = window?.let { WindowCompat.getDecorFitsSystemWindows(it) } ?: true
         val controller = window?.let { WindowInsetsControllerCompat(it, it.decorView) }
 
         if (window != null && controller != null) {
@@ -51,7 +50,7 @@ fun VideoPlayerScreen(
 
         onDispose {
             if (window != null && controller != null) {
-                WindowCompat.setDecorFitsSystemWindows(window, originalFitsSystemWindows)
+                WindowCompat.setDecorFitsSystemWindows(window, true)
                 controller.show(WindowInsetsCompat.Type.systemBars())
             }
         }
