@@ -2,10 +2,6 @@ package com.example.videoplayer.screens
 
 import android.app.Activity
 import android.net.Uri
-import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.VideoView
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -23,6 +20,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 
 @Composable
 @Suppress("UNUSED_PARAMETER")
@@ -34,8 +35,20 @@ fun VideoPlayerScreen(
 ) {
     val context = LocalContext.current
     val replayMessageVisible = remember { mutableStateOf(false) }
+    val exoPlayer = remember(context) {
+        ExoPlayer.Builder(context).build().apply {
+            repeatMode = Player.REPEAT_MODE_OFF
+            playWhenReady = true
+        }
+    }
 
     BackHandler(onBack = onBack)
+
+    LaunchedEffect(videoUri, exoPlayer) {
+        replayMessageVisible.value = false
+        exoPlayer.setMediaItem(MediaItem.fromUri(videoUri))
+        exoPlayer.prepare()
+    }
 
     DisposableEffect(Unit) {
         val activity = context as? Activity
@@ -48,7 +61,20 @@ fun VideoPlayerScreen(
             controller.hide(WindowInsetsCompat.Type.systemBars())
         }
 
+        val listener = object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_READY) {
+                    onPlaybackStarted()
+                } else if (playbackState == Player.STATE_ENDED) {
+                    replayMessageVisible.value = true
+                }
+            }
+        }
+        exoPlayer.addListener(listener)
+
         onDispose {
+            exoPlayer.removeListener(listener)
+            exoPlayer.release()
             if (window != null && controller != null) {
                 WindowCompat.setDecorFitsSystemWindows(window, true)
                 controller.show(WindowInsetsCompat.Type.systemBars())
@@ -64,39 +90,15 @@ fun VideoPlayerScreen(
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = {
-                VideoView(context).apply {
-                    layoutParams = FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                    )
-                    setBackgroundColor(android.graphics.Color.BLACK)
-                    systemUiVisibility = (
-                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_FULLSCREEN
-                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        )
-                    tag = videoUri.toString()
-                    setVideoURI(videoUri)
-                    setOnPreparedListener { mediaPlayer ->
-                        mediaPlayer.isLooping = false
-                        onPlaybackStarted()
-                        start()
-                    }
-                    setOnCompletionListener {
-                        replayMessageVisible.value = true
-                    }
+                PlayerView(context).apply {
+                    useController = true
+                    player = exoPlayer
+                    setShutterBackgroundColor(android.graphics.Color.BLACK)
                 }
             },
-            update = { videoView ->
-                if (videoView.tag != videoUri.toString()) {
-                    videoView.tag = videoUri.toString()
-                    replayMessageVisible.value = false
-                    videoView.setVideoURI(videoUri)
-                    videoView.requestFocus()
-                    videoView.start()
+            update = { playerView ->
+                if (playerView.player !== exoPlayer) {
+                    playerView.player = exoPlayer
                 }
             },
         )

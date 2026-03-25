@@ -145,11 +145,23 @@ fun VideoListScreen(
                         }
                     }
                     item {
-                        LibrarySection(
-                            videos = videos,
-                            resolveTitle = ::resolvedTitle,
-                            onVideoSelected = { video -> onVideoSelected(video, resolvedTitle(video)) },
-                            onRename = { video, newTitle ->
+                        Text(
+                            text = "Library",
+                            color = Color.White,
+                            fontFamily = FontFamily.SansSerif,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    items(
+                        items = videos,
+                        key = { it.id },
+                    ) { video ->
+                        LibraryCard(
+                            video = video,
+                            resolvedTitle = resolvedTitle(video),
+                            onClick = { onVideoSelected(video, resolvedTitle(video)) },
+                            onRename = { newTitle ->
                                 scope.launch {
                                     val renamed = repository.renameVideo(video, newTitle)
                                     if (renamed) {
@@ -161,8 +173,8 @@ fun VideoListScreen(
                                     }
                                 }
                             },
-                            onDelete = { video -> deletingVideo = video },
-                            onClearTitle = { video ->
+                            onDelete = { deletingVideo = video },
+                            onClearTitle = {
                                 preferences.clearCustomTitle(video.id)
                                 videos = videos.toList()
                             },
@@ -251,39 +263,6 @@ private fun HistorySection(
                         )
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun LibrarySection(
-    videos: List<Video>,
-    resolveTitle: (Video) -> String,
-    onVideoSelected: (Video) -> Unit,
-    onRename: (Video, String) -> Unit,
-    onDelete: (Video) -> Unit,
-    onClearTitle: (Video) -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(
-            text = "Library",
-            color = Color.White,
-            fontFamily = FontFamily.SansSerif,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-        )
-
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            videos.forEach { video ->
-                LibraryCard(
-                    video = video,
-                    resolvedTitle = resolveTitle(video),
-                    onClick = { onVideoSelected(video) },
-                    onRename = { onRename(video, it) },
-                    onDelete = { onDelete(video) },
-                    onClearTitle = { onClearTitle(video) },
-                )
             }
         }
     }
@@ -472,7 +451,7 @@ private suspend fun loadVideoThumbnail(context: android.content.Context, video: 
     withContext(Dispatchers.IO) {
         runCatching {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                context.contentResolver.loadThumbnail(video.uri, Size(640, 360), null)
+                context.contentResolver.loadThumbnail(video.uri, Size(320, 180), null)
             } else {
                 MediaMetadataRetriever().use { retriever ->
                     retriever.setDataSource(context, video.uri)
