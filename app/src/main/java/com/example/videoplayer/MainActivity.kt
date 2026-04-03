@@ -5,9 +5,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberSaveable
+import androidx.compose.runtime.setValue
 import com.google.android.gms.ads.MobileAds
 
 class MainActivity : ComponentActivity() {
@@ -37,7 +44,26 @@ class MainActivity : ComponentActivity() {
             }
 
             MaterialTheme(colorScheme = colors) {
+                var showAdsNotice by rememberSaveable { mutableStateOf(true) }
                 VideoPlayerNavigation()
+
+                if (showAdsNotice) {
+                    AlertDialog(
+                        onDismissRequest = { showAdsNotice = false },
+                        title = { Text("تنبيه مهم") },
+                        text = {
+                            Text(
+                                "هذا التطبيق يعتمد على الإعلانات كمصدر الربح الأساسي لاستمراره. " +
+                                    "مشاهدة الإعلانات تساعدنا على الاستمرار وتطوير التطبيق بشكل أفضل."
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(onClick = { showAdsNotice = false }) {
+                                Text("حسناً")
+                            }
+                        },
+                    )
+                }
             }
         }
     }
