@@ -1,6 +1,7 @@
 package com.example.videoplayer.screens
 
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -28,7 +30,7 @@ import java.util.*
 fun VideoListScreen(
     onVideoSelected: (Video, String) -> Unit,
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     val repository = remember { VideoRepository(context) }
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
@@ -53,13 +55,9 @@ fun VideoListScreen(
         Scaffold(
             modifier = Modifier.background(Color.Black),
             containerColor = Color.Black,
-
-            // ✅ الإعلان تحت
             bottomBar = {
                 TestBannerAd()
             },
-
-            // ✅ الزر موجود
             floatingActionButton = {
                 if (hasPermission) {
                     FloatingActionButton(
@@ -162,15 +160,30 @@ private fun PermissionView(
 
 @Composable
 private fun TestBannerAd() {
+    val context = LocalContext.current
+    val adView = remember {
+        AdView(context).apply {
+            setAdSize(AdSize.BANNER)
+            adUnitId = "ca-app-pub-3940256099942544/6300978111"
+            adListener = object : AdListener() {
+                override fun onAdLoaded() {
+                    Log.d("Ads", "Banner loaded")
+                }
+                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                    Log.w("Ads", "Banner failed to load: ${loadAdError.message}")
+                }
+            }
+            loadAd(AdRequest.Builder().build())
+        }
+    }
+
+    DisposableEffect(adView) {
+        onDispose { adView.destroy() }
+    }
+
     AndroidView(
         modifier = Modifier.fillMaxWidth(),
-        factory = { context ->
-            AdView(context).apply {
-                setAdSize(AdSize.BANNER)
-                adUnitId = "ca-app-pub-3940256099942544/6300978111"
-                loadAd(AdRequest.Builder().build())
-            }
-        }
+        factory = { adView }
     )
 }
 
