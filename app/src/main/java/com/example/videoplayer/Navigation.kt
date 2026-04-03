@@ -1,8 +1,14 @@
 package com.example.videoplayer
 
+import android.app.Activity
 import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -10,6 +16,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.videoplayer.screens.VideoListScreen
 import com.example.videoplayer.screens.VideoPlayerScreen
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 
 private object Destinations {
     const val VideoList = "video_list"
@@ -22,11 +33,36 @@ private object Destinations {
         "$VideoPlayer/${Uri.encode(video.uri.toString())}/${Uri.encode(resolvedTitle)}/${video.id}"
 }
 
+private const val TestInterstitialAdUnitId = "ca-app-pub-3940256099942544/1033173712"
+
 @Composable
 fun VideoPlayerNavigation() {
     val navController = rememberNavController()
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     val preferences = remember { UserVideoPreferences(context) }
+    val activity = context as? Activity
+    var interstitialAd by remember { mutableStateOf<InterstitialAd?>(null) }
+
+    fun loadInterstitialAd() {
+        InterstitialAd.load(
+            context,
+            TestInterstitialAdUnitId,
+            AdRequest.Builder().build(),
+            object : InterstitialAdLoadCallback() {
+                override fun onAdLoaded(loadedAd: InterstitialAd) {
+                    interstitialAd = loadedAd
+                }
+
+                override fun onAdFailedToLoad(loadError: LoadAdError) {
+                    interstitialAd = null
+                }
+            }
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        loadInterstitialAd()
+    }
 
     NavHost(
         navController = navController,
@@ -35,7 +71,26 @@ fun VideoPlayerNavigation() {
         composable(Destinations.VideoList) {
             VideoListScreen(
                 onVideoSelected = { video, resolvedTitle ->
-                    navController.navigate(Destinations.videoPlayerRoute(video, resolvedTitle))
+                    val route = Destinations.videoPlayerRoute(video, resolvedTitle)
+                    val ad = interstitialAd
+                    if (activity == null || ad == null) {
+                        navController.navigate(route)
+                        if (ad == null) loadInterstitialAd()
+                    } else {
+                        interstitialAd = null
+                        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+                            override fun onAdDismissedFullScreenContent() {
+                                loadInterstitialAd()
+                                navController.navigate(route)
+                            }
+
+                            override fun onAdFailedToShowFullScreenContent(adError: com.google.android.gms.ads.AdError) {
+                                loadInterstitialAd()
+                                navController.navigate(route)
+                            }
+                        }
+                        ad.show(activity)
+                    }
                 }
             )
         }

@@ -57,6 +57,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.example.videoplayer.PermissionHandler
 import com.example.videoplayer.UserVideoPreferences
 import com.example.videoplayer.Video
@@ -99,6 +103,9 @@ fun VideoListScreen(
         Scaffold(
             modifier = Modifier.background(Color.Black),
             containerColor = Color.Black,
+            bottomBar = {
+                TestBannerAd()
+            },
         ) { innerPadding ->
             when {
                 !hasPermission -> PermissionView(
@@ -528,6 +535,20 @@ private fun EmptyVideosView(modifier: Modifier, onRefresh: () -> Unit) {
             }
         }
     }
+}
+
+@Composable
+private fun TestBannerAd() {
+    AndroidView(
+        modifier = Modifier.fillMaxWidth(),
+        factory = { context ->
+            AdView(context).apply {
+                setAdSize(AdSize.BANNER)
+                adUnitId = "ca-app-pub-3940256099942544/6300978111"
+                loadAd(AdRequest.Builder().build())
+            }
+        }
+    )
 }
 
 private fun formatDuration(durationMs: Long): String {
