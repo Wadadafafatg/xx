@@ -104,11 +104,13 @@ fun VideoPlayerNavigation() {
         ) { backStackEntry ->
             val videoId = backStackEntry.arguments?.getLong(Destinations.VideoIdArgument) ?: -1L
             VideoPlayerScreen(
+                videoId = videoId,
                 videoUri = Uri.parse(
                     Uri.decode(backStackEntry.arguments?.getString(Destinations.VideoUriArgument).orEmpty())
                 ),
                 title = Uri.decode(backStackEntry.arguments?.getString(Destinations.VideoTitleArgument).orEmpty()),
                 onBack = { navController.popBackStack() },
+                onVideoDeleted = { navController.popBackStack() },
                 onPlaybackStarted = {
                     if (videoId >= 0) {
                         preferences.addToHistory(videoId)
