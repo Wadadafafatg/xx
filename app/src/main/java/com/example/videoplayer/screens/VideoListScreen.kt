@@ -4,35 +4,25 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import com.google.android.gms.ads.*
 import com.example.videoplayer.PermissionHandler
 import com.example.videoplayer.Video
 import com.example.videoplayer.VideoRepository
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun VideoListScreen(
@@ -54,11 +44,22 @@ fun VideoListScreen(
     }
 
     PermissionHandler(onPermissionGranted = {}) { hasPermission, requestPermission ->
-        val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent(), ::handlePickedUri)
+
+        val picker = rememberLauncherForActivityResult(
+            ActivityResultContracts.GetContent(),
+            ::handlePickedUri
+        )
 
         Scaffold(
             modifier = Modifier.background(Color.Black),
             containerColor = Color.Black,
+
+            // ✅ الإعلان تحت
+            bottomBar = {
+                TestBannerAd()
+            },
+
+            // ✅ الزر موجود
             floatingActionButton = {
                 if (hasPermission) {
                     FloatingActionButton(
@@ -66,11 +67,15 @@ fun VideoListScreen(
                         containerColor = Color.White,
                         contentColor = Color.Black,
                     ) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Pick video")
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Pick video"
+                        )
                     }
                 }
-            },
+            }
         ) { innerPadding ->
+
             when {
                 !hasPermission -> PermissionView(
                     modifier = Modifier
@@ -90,7 +95,9 @@ fun VideoListScreen(
                     CircularProgressIndicator(color = Color.White)
                 }
 
-                else -> HomePickerView(modifier = Modifier.padding(innerPadding))
+                else -> HomePickerView(
+                    modifier = Modifier.padding(innerPadding)
+                )
             }
         }
     }
@@ -127,7 +134,10 @@ private fun HomePickerView(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun PermissionView(modifier: Modifier, requestPermission: () -> Unit) {
+private fun PermissionView(
+    modifier: Modifier,
+    requestPermission: () -> Unit
+) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
@@ -143,9 +153,40 @@ private fun PermissionView(modifier: Modifier, requestPermission: () -> Unit) {
                 fontFamily = FontFamily.SansSerif,
                 textAlign = TextAlign.Center,
             )
-            androidx.compose.material3.Button(onClick = requestPermission) {
+            Button(onClick = requestPermission) {
                 Text(text = "Grant permission")
             }
         }
     }
+}
+
+@Composable
+private fun TestBannerAd() {
+    AndroidView(
+        modifier = Modifier.fillMaxWidth(),
+        factory = { context ->
+            AdView(context).apply {
+                setAdSize(AdSize.BANNER)
+                adUnitId = "ca-app-pub-3940256099942544/6300978111"
+                loadAd(AdRequest.Builder().build())
+            }
+        }
+    )
+}
+
+private fun formatDuration(durationMs: Long): String {
+    val totalSeconds = durationMs / 1_000
+    val hours = totalSeconds / 3_600
+    val minutes = (totalSeconds % 3_600) / 60
+    val seconds = totalSeconds % 60
+    return if (hours > 0) {
+        "%d:%02d:%02d".format(hours, minutes, seconds)
+    } else {
+        "%d:%02d".format(minutes, seconds)
+    }
+}
+
+private fun formatDate(dateAddedSeconds: Long): String {
+    val formatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+    return formatter.format(Date(dateAddedSeconds * 1_000))
 }
