@@ -2,6 +2,7 @@ package com.example.videoplayer
 
 import android.app.Activity
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,6 +22,7 @@ import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import kotlinx.coroutines.delay
 
 private object Destinations {
     const val VideoList = "video_list"
@@ -34,6 +36,7 @@ private object Destinations {
 }
 
 private const val TestInterstitialAdUnitId = "ca-app-pub-3940256099942544/1033173712"
+private const val InterstitialRetryDelayMs = 10_000L
 
 @Composable
 fun VideoPlayerNavigation() {
@@ -51,17 +54,25 @@ fun VideoPlayerNavigation() {
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(loadedAd: InterstitialAd) {
                     interstitialAd = loadedAd
+                    Log.d("Ads", "Interstitial loaded")
                 }
 
                 override fun onAdFailedToLoad(loadError: LoadAdError) {
                     interstitialAd = null
+                    Log.w("Ads", "Interstitial failed to load: ${loadError.message}")
                 }
             }
         )
     }
 
-    LaunchedEffect(Unit) {
-        loadInterstitialAd()
+    LaunchedEffect(interstitialAd) {
+        if (interstitialAd == null) {
+            loadInterstitialAd()
+            delay(InterstitialRetryDelayMs)
+            if (interstitialAd == null) {
+                loadInterstitialAd()
+            }
+        }
     }
 
     NavHost(
@@ -85,6 +96,7 @@ fun VideoPlayerNavigation() {
                             }
 
                             override fun onAdFailedToShowFullScreenContent(adError: com.google.android.gms.ads.AdError) {
+                                Log.w("Ads", "Interstitial failed to show: ${adError.message}")
                                 loadInterstitialAd()
                                 navController.navigate(route)
                             }

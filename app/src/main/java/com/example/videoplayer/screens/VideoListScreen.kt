@@ -3,6 +3,7 @@ package com.example.videoplayer.screens
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.os.Build
+import android.util.Log
 import android.util.Size
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -47,6 +48,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -61,6 +63,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.LoadAdError
 import com.example.videoplayer.PermissionHandler
 import com.example.videoplayer.UserVideoPreferences
 import com.example.videoplayer.Video
@@ -539,15 +543,31 @@ private fun EmptyVideosView(modifier: Modifier, onRefresh: () -> Unit) {
 
 @Composable
 private fun TestBannerAd() {
+    val context = LocalContext.current
+    val adView = remember {
+        AdView(context).apply {
+            setAdSize(AdSize.BANNER)
+            adUnitId = "ca-app-pub-3940256099942544/6300978111"
+            adListener = object : AdListener() {
+                override fun onAdLoaded() {
+                    Log.d("Ads", "Banner loaded")
+                }
+
+                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                    Log.w("Ads", "Banner failed to load: ${loadAdError.message}")
+                }
+            }
+            loadAd(AdRequest.Builder().build())
+        }
+    }
+
+    DisposableEffect(adView) {
+        onDispose { adView.destroy() }
+    }
+
     AndroidView(
         modifier = Modifier.fillMaxWidth(),
-        factory = { context ->
-            AdView(context).apply {
-                setAdSize(AdSize.BANNER)
-                adUnitId = "ca-app-pub-3940256099942544/6300978111"
-                loadAd(AdRequest.Builder().build())
-            }
-        }
+        factory = { adView }
     )
 }
 
