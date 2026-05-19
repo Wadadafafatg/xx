@@ -1,4 +1,3 @@
 <resources>
-    <string name="app_name">Modern Video Player</string>
-    <string name="permission_rationale">Video access is required to scan your device and play local files.</string>
+    <string name="app_name">FreshStart</string>
 </resources>

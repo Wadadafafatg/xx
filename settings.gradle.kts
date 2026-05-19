@@ -1,5 +1,3 @@
-import org.gradle.api.initialization.resolve.RepositoriesMode
-
 pluginManagement {
     repositories {
         google()
@@ -16,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "xx"
+rootProject.name = "FreshStart"
 include(":app")

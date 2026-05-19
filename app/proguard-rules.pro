@@ -1,1 +1,1 @@
-# Intentionally empty for this sample app.
+# Keep default for fresh start.
