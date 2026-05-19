@@ -1,39 +1,31 @@
-name: Vccc
+name: Build APK
 
 on:
   push:
-    branches:
-      - main
-      - codex
-  workflow_dispatch:
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # تحميل الكود من GitHub
-      - name: Checkout project
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # إعداد Java JDK 17
-      - name: Setup JDK
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
+          distribution: 'temurin'
+          java-version: '17'
 
-      # السماح بتنفيذ Gradle
-      - name: Grant Gradle permission
-        run: chmod +x gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-      # بناء APK نسخة Debug
       - name: Build APK
-        run: ./gradlew assembleDebug
+        run: gradle assembleDebug
 
-      # رفع APK كـ Artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vccc-apk
+          name: app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
