@@ -17,23 +17,19 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          # ملاحظة: الـ setup-gradle@v3 اللي أنت مستخدمه بالخطوة اللي بعدها
-          # هو تلقائياً يسوي كاش ذكي للـ Gradle، فترتيبك هنا جداً بطل!
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      # خطوة أمان: تضمن إن السيرفر يگدر يشغل الـ Gradle بدون مشاكل صلاحيات
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # غيرناها إلى assembleRelease حتى نفعّل الـ R8 وتحسينات الأداء والسرعة
       - name: Build Release APK
         run: ./gradlew assembleRelease
 
-      # نرفع الـ Release APK الناتج بعد الضغط والتحسين
+      # تم تحديث المسار واسم الملف هنا ليتوافق مع النسخة الموقعة
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          path: app/build/outputs/apk/release/app-release.apk
