@@ -2,8 +2,6 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
-    // حيلة إضافية: إذا ردت مستقبلاً تضيف Baseline Profiles لتسريع تشغيل التطبيق تفعل هذا الـ Plugin
-    // id("androidx.baselineprofile") 
 }
 
 android {
@@ -25,11 +23,12 @@ android {
 
     buildTypes {
         release {
-            // 1. تفعيل ضغط وتصغير الكود (حذف الكود الزايد والمكتبات الما مستخدمة)
+            // تفعيل الـ R8 لضغط الكود وحذف الزيادات (سرعة وحجم صغير)
             isMinifyEnabled = true
-            
-            // 2. تفعيل حذف الصور والملفات والموارد الزايدة غير المستخدمة بالتطبيق
             isShrinkResources = true
+            
+            // السحر هنا: يخلي نسخة الـ Release تتوقع تلقائياً بمفتاح الـ debug حتى تتثبت بجهازك فوراً
+            signingConfig = signingConfigs.getByName("debug")
             
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -38,7 +37,6 @@ android {
         }
         
         debug {
-            // خليه خفيف للـ Debug حتى تبني بسرعة من الهاتف وتجرب
             applicationIdSuffix = ".debug"
             isDebuggable = true
         }
@@ -49,7 +47,6 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
-        // حيلة لكوتلن: تفعيل التحسينات الإضافية أثناء البناء
         freeCompilerArgs += listOf(
             "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
             "-Xjvm-default=all"
@@ -74,15 +71,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
     implementation("androidx.activity:activity-compose:1.9.1")
     
-    // واجهات Compose الأساسية
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-
-    // مكاتب إضافية ننصح بيها للأداء السلس (اختيارية حسب حاجتك):
-    // implementation("io.coil-kt:coil-compose:2.6.0") // لتحميل الصور بكفاءة عالية وبدون تعليق
-    // implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4") // لإدارة الـ State والـ ViewModel بشكل محترف
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
