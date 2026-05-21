@@ -23,11 +23,9 @@ android {
 
     buildTypes {
         release {
-            // تفعيل الـ R8 لضغط الكود وحذف الزيادات (سرعة وحجم صغير)
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             
-            // السحر هنا: يخلي نسخة الـ Release تتوقع تلقائياً بمفتاح الـ debug حتى تتثبت بجهازك فوراً
             signingConfig = signingConfigs.getByName("debug")
             
             proguardFiles(
