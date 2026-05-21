@@ -24,10 +24,11 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # بناء نسخة الريليز السريعة والمضغوطة
       - name: Build Release APK
         run: ./gradlew assembleRelease
 
-      # تم تحديث المسار واسم الملف هنا ليتوافق مع النسخة الموقعة
+      # رفع الـ APK الموقّع الجاهز للتثبيت والمعدل مساره تلقائياً
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
