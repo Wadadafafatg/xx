@@ -1,3 +1,1 @@
--keep class com.example.freshstart.** { *; }
--keep class * extends androidx.lifecycle.ViewModel { *; }
--keep class kotlinx.coroutines.** { *; }
+#ااا
