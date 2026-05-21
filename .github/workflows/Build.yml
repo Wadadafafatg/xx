@@ -9,23 +9,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up JDK
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
+          # ملاحظة: الـ setup-gradle@v3 اللي أنت مستخدمه بالخطوة اللي بعدها
+          # هو تلقائياً يسوي كاش ذكي للـ Gradle، فترتيبك هنا جداً بطل!
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Build APK
-        run: ./gradlew assembleDebug
+      # خطوة أمان: تضمن إن السيرفر يگدر يشغل الـ Gradle بدون مشاكل صلاحيات
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
-      - name: Upload APK
+      # غيرناها إلى assembleRelease حتى نفعّل الـ R8 وتحسينات الأداء والسرعة
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
+
+      # نرفع الـ Release APK الناتج بعد الضغط والتحسين
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: app-release
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
