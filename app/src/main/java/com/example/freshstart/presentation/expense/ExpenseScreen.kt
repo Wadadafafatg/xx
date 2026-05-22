@@ -3,8 +3,8 @@ package com.example.freshstart.presentation.expense
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.FillMaxSize
-import androidx.compose.foundation.layout.FillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -44,11 +44,6 @@ fun ExpenseScreen(viewModel: ExpenseViewModel) {
     var amountInput by remember { mutableStateOf("") }
     var descriptionInput by remember { mutableStateOf("") }
 
-    // هنا استمع لحدث النجاح وتصفير الحقول لمنع الـ Lag وتأمين الـ State
-    LaunchedEffect(viewModel) {
-        // إذا كان هناك تدفق للنجاح بالـ ViewModel يتم تصفير الحقول هنا
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -73,7 +68,6 @@ fun ExpenseScreen(viewModel: ExpenseViewModel) {
             }
         }
 
-        // قمنا بعزل قسم الإدخال لمنع الـ Recomposition الزائد للشاشة بالكامل عند كتابة كل حرف
         ExpenseInputSection(
             amountInput = amountInput,
             onAmountChange = { amountInput = it.filter { char -> char.isDigit() } },
@@ -172,7 +166,6 @@ private fun ExpenseItem(expense: Expense, onDelete: () -> Unit) {
     }
 }
 
-// دالة تنسيق العملة العراقية الاحترافية مع الفواصل وإضافة د.ع أو IQD
 private fun formatIqd(amount: Long): String {
     val numberFormat = NumberFormat.getInstance()
     return "${numberFormat.format(amount)} IQD"
