@@ -2,8 +2,8 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
-    // تعديل: إضافة الـ KSP مع الإصدار المتوافق تماماً لمنع مشاكل البناء
-    id("com.google.devtools.ksp") version "1.9.24-1.0.20"
+    // الحل: استخدمنا نفس الإصدار المثبت بالمشروع بالضبط لمنع التضارب والخطأ
+    id("com.google.devtools.ksp") version "2.0.21-1.0.25"
 }
 
 android {
@@ -25,7 +25,6 @@ android {
 
     buildTypes {
         release {
-            // معطلين الـ R8 بناءً على رغبتك لتجنب الكراش أثناء التطوير
             isMinifyEnabled = false
             isShrinkResources = false
 
@@ -80,7 +79,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
 
-    // مكاتب الـ Room Database مع الـ KSP Compiler المجهّز
+    // مكاتب الـ Room Database
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
