@@ -7,16 +7,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.example.freshstart.data.repository.SampleRepositoryImpl
-import com.example.freshstart.presentation.SampleScreen
-import com.example.freshstart.presentation.SampleViewModel
+import androidx.room.Room
+import com.example.freshstart.data.local.ExpenseDatabase
+import com.example.freshstart.data.repository.ExpenseRepositoryImpl
+import com.example.freshstart.presentation.expense.ExpenseScreen
+import com.example.freshstart.presentation.expense.ExpenseViewModel
 import com.example.freshstart.ui.theme.FreshStartTheme
 
 class MainActivity : ComponentActivity() {
 
+    private val database by lazy {
+        Room.databaseBuilder(
+            applicationContext,
+            ExpenseDatabase::class.java,
+            "expense_db"
+        ).build()
+    }
+
     private val viewModel by lazy {
-        SampleViewModel(
-            repository = SampleRepositoryImpl()
+        ExpenseViewModel(
+            repository = ExpenseRepositoryImpl(database.expenseDao())
         )
     }
 
@@ -28,7 +38,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    SampleScreen(viewModel = viewModel)
+                    ExpenseScreen(viewModel = viewModel)
                 }
             }
         }
