@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/example/freshstart/presentation/expense/ExpenseViewModel.kt
 package com.example.freshstart.presentation.expense
 
 import androidx.lifecycle.ViewModel
@@ -13,7 +12,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class ExpenseViewModel(
     private val repository: ExpenseRepository
@@ -23,13 +21,10 @@ class ExpenseViewModel(
         .getAllExpenses()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    // حساب المجموع على الـ Background Thread لضمان أداء عالي وسلاسة تامة بدون Lag
     val totalExpenses: StateFlow<Long> = repository
         .getAllExpenses()
-        .map { list ->
-            withContext(Dispatchers.Default) {
-                list.sumOf { it.amount }
-            }
-        }
+        .map { list -> list.sumOf { it.amount } }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0L)
 
